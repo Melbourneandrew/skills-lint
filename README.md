@@ -16,30 +16,43 @@ Harness profiles add checks for fields documented by
 [Cursor](https://cursor.com/docs/skills). See [Research, references, and precedents](#research-references-and-precedents)
 for the reference implementations and related validators reviewed.
 
-## When to use it
+## Errors and warnings
 
-Use this when your team maintains a skill collection and wants a consistent
-schema check on every pull request:
+Errors fail the check. Warnings are advisory unless `fail-on-warnings: true`
+(or the CLI's `--fail-on-warnings`) is enabled.
 
-- **Shared skills:** choose `profile: spec` to enforce the portable format,
-  including rejecting fields outside the standard.
-- **Harness-specific skills:** choose a harness profile, or infer profiles from
-  conventional directory names, to validate supported extensions such as Claude
-  invocation controls and Codex `agents/openai.yaml` metadata.
-- **Multiple skill directories:** check them in one step, including grouped
-  collections and workspace-contained symlinks.
-- **Action-ready reporting:** get file/line annotations, error and warning counts,
-  and a job summary. Make advisory findings blocking with `fail-on-warnings`.
+### Errors
 
-The action ships as one bundled JavaScript file, so the validation step needs no
-package installation or agent setup. Its YAML parser is included in the bundle;
-there are no runtime installation dependencies.
+| Check                     | What fails                                                                                                                                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| YAML and frontmatter      | Missing `---` delimiters, malformed YAML, duplicate keys, unresolved tags or aliases, a non-mapping root, or non-string mapping keys.                                                                                              |
+| Required fields and types | Missing `name` or `description`; invalid types, lengths, or values in portable fields or supported harness extensions.                                                                                                             |
+| Skill name                | Invalid name syntax or a name that does not match its parent directory. OpenCode additionally requires ASCII names.                                                                                                                |
+| Unknown portable fields   | Unrecognized top-level fields when using `profile: spec`.                                                                                                                                                                          |
+| Codex sidecar             | Invalid types or values in supported `agents/openai.yaml` fields, wherever that file is present.                                                                                                                                   |
+| Discovery and limits      | Missing explicit paths, unreadable files, incorrect `SKILL.md` casing, paths outside the workspace, symlink cycles, invalid UTF-8, or exceeded file, traversal, or YAML limits. Zero skills fails unless `allow-empty` is enabled. |
 
-This checks file structure and metadata. It does not evaluate instruction quality,
-scan for malicious instructions, or prove that a skill works inside an agent.
-Harness profiles enforce the portable core plus supported extensions; they do not
-reproduce every loader's permissive behavior. Keep any repository-specific checks,
-such as Markdown link validation, alongside it.
+Invalid action inputs or CLI options also fail before validation.
+
+### Warnings
+
+| Check                     | What is reported                                                                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Empty instructions        | No Markdown instructions after the frontmatter.                                                                                                                                                                           |
+| Skill length              | At least 500 physical lines in `SKILL.md`. The [standard recommends keeping it under 500](https://agentskills.io/specification#progressive-disclosure).                                                                   |
+| Unmentioned references    | A nonempty, direct `references/` directory whose name never appears in the skill body. This is a heuristic based on [loading supporting material on demand](https://agentskills.io/specification#progressive-disclosure). |
+| Duplicate name            | The same skill name appears in distinct physical files. Harness overrides can make this intentional.                                                                                                                      |
+| Unknown harness fields    | Unrecognized top-level fields in a harness profile, or unknown top-level sections in the Codex sidecar.                                                                                                                   |
+| OpenCode tool declaration | `allowed-tools` is present, but OpenCode does not list it among recognized skill fields.                                                                                                                                  |
+
+Warnings with a source print its URL alongside the finding. See
+[compatibility boundaries](#harness-profiles-and-compatibility-boundaries) for
+profile-specific details and [operational limits](#operational-limits) for the
+validator's resource limits. These checks do not assess instruction quality or
+prove that a skill works inside an agent.
+
+The action ships as one bundled JavaScript file, including its YAML parser, so
+validation needs no package installation or agent setup.
 
 ## Use in GitHub Actions
 
@@ -143,15 +156,6 @@ unique mapping keys and bounded alias expansion. Block scalars, multiline text,
 quotes, flow collections, anchors, BOM, and CRLF are supported. Parse errors,
 unresolved tags/aliases, non-string field keys, and parser warnings fail clearly.
 Scalar types are retained: quote numeric metadata values when strings are needed.
-
-Advisories complement schema errors:
-
-| Warning                | What it finds                                                                                                                                 | Guidance                                                                                                                                                            |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Empty body             | No Markdown instructions after frontmatter.                                                                                                   | No external precedent; this is a local authoring heuristic.                                                                                                         |
-| Skill length           | A `SKILL.md` of 500 or more physical lines.                                                                                                   | [Agent Skills progressive disclosure](https://agentskills.io/specification#progressive-disclosure) recommends keeping it under 500 and moving detail to references. |
-| Unmentioned references | A nonempty, direct `references/` directory whose name never appears in the skill body. This is a heuristic: other discovery routes may exist. | [Agent Skills resource guidance](https://agentskills.io/specification#progressive-disclosure) describes loading supporting files on demand.                         |
-| Duplicate name         | The same name appears in distinct physical skills. Overrides can be intentional.                                                              | Harness precedence varies; no universal restriction.                                                                                                                |
 
 The standard also recommends fewer than 5,000 instruction tokens. This action
 does not estimate tokens: the harnesses use different tokenizers, so an estimate
