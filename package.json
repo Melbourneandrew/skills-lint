@@ -1,6 +1,6 @@
 {
   "name": "@melbourneandrew/skills-schema-lint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast Agent Skills schema validation for GitHub Actions and the command line",
   "type": "module",
   "private": true,

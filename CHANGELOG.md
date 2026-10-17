@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Cite the Agent Skills progressive disclosure guidance for the skill length
+  advisory. Warn at 500 physical lines, including when the file ends in a newline.
+
 ## 1.0.0
 
 - Portable Agent Skills schema checks plus Claude Code, Codex, Gemini CLI,
