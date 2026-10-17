@@ -148,9 +148,11 @@ Empty bodies, files with 500 or more lines, and duplicate names in distinct
 physical files are **warnings**. The length advisory follows the
 [Agent Skills progressive disclosure guidance](https://agentskills.io/specification#progressive-disclosure),
 which recommends keeping the main `SKILL.md` under 500 lines and moving detail
-to referenced files. It is a recommendation, not a format restriction. Duplicate
-names can be intentional overrides; precedence varies by harness. A schema check
-does not grade instruction quality.
+to referenced files because agents load the main instructions on activation.
+The guidance also recommends fewer than 5,000 instruction tokens; this action
+does not estimate tokens. These are recommendations, not format restrictions.
+Duplicate names can be intentional overrides; precedence varies by harness. A
+schema check does not grade instruction quality.
 
 ### Harness profiles and compatibility boundaries
 
