@@ -33,6 +33,12 @@ jobs:
       - run: npm run check
       - run: npm run test:package
       - run: git diff --exit-code -- dist
+      - name: Check whether the version is already published
+        id: registry
+        run: node scripts/registry-version.mjs
       - run: npm publish --provenance --access public
+        if: steps.registry.outputs.published != 'true'
+      - name: Wait for npm registry processing
+        run: node scripts/registry-version.mjs --wait
       - name: Install and test the published registry artifact
         run: npm run test:published
