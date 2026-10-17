@@ -38,3 +38,34 @@ for (const [label, status, identity, expected] of [
     else assert.equal(fs.existsSync(output), false);
   });
 }
+
+for (const host of ["registry.npmjs.org", "example.com"]) {
+  test(`registry wait checks tarball host ${host}`, (t) => {
+    const root = workspace(t);
+    const mock = path.join(root, "registry.mjs");
+    const manifest = {
+      name,
+      version,
+      dist: { tarball: `https://${host}/package.tgz` },
+    };
+    fs.writeFileSync(
+      mock,
+      `globalThis.fetch = async (_url, options) => new Response(options.method === "HEAD" ? null : ${JSON.stringify(JSON.stringify(manifest))});`,
+    );
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        pathToFileURL(mock).href,
+        "scripts/registry-version.mjs",
+        "--wait",
+      ],
+      { encoding: "utf8" },
+    );
+    assert.equal(
+      result.status,
+      host === "registry.npmjs.org" ? 0 : 1,
+      result.stderr,
+    );
+  });
+}
