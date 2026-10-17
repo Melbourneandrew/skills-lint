@@ -54,6 +54,49 @@ prove that a skill works inside an agent.
 The action ships as one bundled JavaScript file, including its YAML parser, so
 validation needs no package installation or agent setup.
 
+## Performance
+
+The action loads one **130,877-byte bundle (128 KiB)**, including its YAML parser.
+It requires no package installation at runtime. Source modules compile into
+`dist/action.cjs`; TypeScript types are erased, and the separate CLI and library
+bundles are not loaded by the action. Discovery is scoped to skill roots, with
+physical-file contents cached within each validation run.
+
+### Measured validation time
+
+Measured on 2026-10-17 with an Apple M3 Max, macOS ARM64, and Node 26.5.0:
+
+| Generated skills | Warm validation median | Fresh CLI process median |
+| ---------------: | ---------------------: | -----------------------: |
+|               10 |                9.44 ms |                 85.51 ms |
+|              100 |               50.54 ms |                129.56 ms |
+|            1,000 |              516.23 ms |                655.69 ms |
+
+The [benchmark](scripts/benchmark.mjs) generates small valid skills containing
+frontmatter and a one-line instruction body. Warm validation measures the library
+in an existing process: five runs after one discarded warmup. Fresh CLI timings
+measure five new Node processes, including startup, validation, and JSON output.
+Filesystem caches are warm in both cases.
+
+These timings exclude runner provisioning, repository checkout, and action
+download. Larger documents, sidecars, diagnostics, filesystem performance, and
+host load affect results. The table is a reproducible example measurement;
+comparative performance against other linters has not been measured. The action's
+`duration-ms` output measures validation only.
+
+### Reproduce
+
+```sh
+npm ci
+npm run build
+npm run bench
+```
+
+The command prints the hardware, Node version, bundle size, and timing medians.
+[Linux CI](.github/workflows/ci.yml) also logs benchmarks on Node 24, which is the
+action's runtime. Benchmarks are informational, with no timing threshold that
+could fail on a busy runner.
+
 ## Use in GitHub Actions
 
 ```yaml
@@ -226,29 +269,6 @@ console.log(result.ok, result.diagnostics);
 
 This repository publishes a GitHub Action and downloadable source bundles. It is
 not currently an npm registry package.
-
-## Performance
-
-One process, synchronous local file reads, scoped discovery, cached physical-file
-contents, and no runtime setup. Source modules are bundled into a single
-`dist/action.cjs`; the CLI and library bundles are separate entry points that the
-action does not load. TypeScript types are erased during the build.
-
-Example measurement on 2026-10-17, Apple M3 Max, macOS ARM64, Node 26.5.0:
-
-| Generated skills | Warm validation median | Fresh Node process median |
-| ---------------: | ---------------------: | ------------------------: |
-|               10 |                5.92 ms |                   78.2 ms |
-|              100 |               46.74 ms |                 128.19 ms |
-|            1,000 |              488.27 ms |                  554.9 ms |
-
-The action is approximately 130 KB uncompressed. These are measurements, not a
-speed guarantee or a comparison against other linters. Filesystem caches were
-warm; medians use five runs after one warmup. Fresh-process timings include Node
-startup. Runner provisioning, checkout, and action download are excluded.
-
-Reproduce with `npm run build && npm run bench`. Linux CI also logs a benchmark
-on Node 24. Timings are informational to avoid flaky hardware-dependent gates.
 
 ## Verification
 
