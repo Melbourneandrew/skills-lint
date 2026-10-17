@@ -40,5 +40,7 @@ Subsequent GitHub releases trigger publishing automatically. After publishing,
 the workflow downloads the exact registry version, compares its bundles to the
 verified checkout, and exercises the installed CLI and library. Run
 `npm run test:published` to repeat these checks locally. For a retry, dispatch
-`publish.yml` against the version tag. Published npm versions are immutable;
+`publish.yml` against the version tag. Retries skip an already published version
+and verify its contents against the checkout. Registry visibility is polled for up
+to five minutes because npm can acknowledge publication before downloads work. Published npm versions are immutable;
 a code change requires a new version and release.
