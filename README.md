@@ -144,15 +144,20 @@ quotes, flow collections, anchors, BOM, and CRLF are supported. Parse errors,
 unresolved tags/aliases, non-string field keys, and parser warnings fail clearly.
 Scalar types are retained: quote numeric metadata values when strings are needed.
 
-Empty bodies, files with 500 or more lines, and duplicate names in distinct
-physical files are **warnings**. The length advisory follows the
-[Agent Skills progressive disclosure guidance](https://agentskills.io/specification#progressive-disclosure),
-which recommends keeping the main `SKILL.md` under 500 lines and moving detail
-to referenced files because agents load the main instructions on activation.
-The guidance also recommends fewer than 5,000 instruction tokens; this action
-does not estimate tokens. These are recommendations, not format restrictions.
-Duplicate names can be intentional overrides; precedence varies by harness. A
-schema check does not grade instruction quality.
+Advisories complement schema errors:
+
+| Warning                | What it finds                                                                                                                                 | Guidance                                                                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Empty body             | No Markdown instructions after frontmatter.                                                                                                   | No external precedent; this is a local authoring heuristic.                                                                                                         |
+| Skill length           | A `SKILL.md` of 500 or more physical lines.                                                                                                   | [Agent Skills progressive disclosure](https://agentskills.io/specification#progressive-disclosure) recommends keeping it under 500 and moving detail to references. |
+| Unmentioned references | A nonempty, direct `references/` directory whose name never appears in the skill body. This is a heuristic: other discovery routes may exist. | [Agent Skills resource guidance](https://agentskills.io/specification#progressive-disclosure) describes loading supporting files on demand.                         |
+| Duplicate name         | The same name appears in distinct physical skills. Overrides can be intentional.                                                              | Harness precedence varies; no universal restriction.                                                                                                                |
+
+The standard also recommends fewer than 5,000 instruction tokens. This action
+does not estimate tokens: the harnesses use different tokenizers, so an estimate
+could incorrectly imply a portable threshold check. The length and references
+warnings are recommendations, not format restrictions. A schema check does not
+grade instruction quality.
 
 ### Harness profiles and compatibility boundaries
 
@@ -185,8 +190,10 @@ validator policy, not Agent Skills requirements. Run against a stable checkout;
 concurrent filesystem mutation is outside the supported model.
 
 The action prints at most 100 annotations; output counts include all findings.
-The CLI JSON report includes all diagnostics. Annotation messages and properties
-are escaped so input text cannot create extra workflow commands. This tool is a
+The CLI JSON report includes all diagnostics and structured `referenceUrl` fields
+where a rule has a source. Text and GitHub annotations print the same link.
+Annotation messages and properties are escaped so input text cannot create extra
+workflow commands. This tool is a
 schema linter, not a security scanner or proof that a skill's instructions are safe.
 
 ## Local CLI and library
@@ -223,13 +230,13 @@ contents, and no runtime setup. Source modules are bundled into a single
 `dist/action.cjs`; the CLI and library bundles are separate entry points that the
 action does not load. TypeScript types are erased during the build.
 
-Example measurement on an Apple M3 Max, macOS ARM64, Node 26.5.0:
+Example measurement on 2026-10-17, Apple M3 Max, macOS ARM64, Node 26.5.0:
 
 | Generated skills | Warm validation median | Fresh Node process median |
 | ---------------: | ---------------------: | ------------------------: |
-|               10 |                2.53 ms |                  66.89 ms |
-|              100 |               16.03 ms |                  88.44 ms |
-|            1,000 |              148.93 ms |                 244.29 ms |
+|               10 |                5.92 ms |                   78.2 ms |
+|              100 |               46.74 ms |                 128.19 ms |
+|            1,000 |              488.27 ms |                  554.9 ms |
 
 The action is approximately 130 KB uncompressed. These are measurements, not a
 speed guarantee or a comparison against other linters. Filesystem caches were
@@ -251,6 +258,8 @@ bundle build, and Node's test runner. Tests cover:
   casing, invalid UTF-8, size limits, duplicates, and empty-result policy.
 - CLI exit codes and formats; action inputs, outputs, summaries, failure paths,
   annotation escaping, and running the bundle without `node_modules`.
+- Lint findings and non-findings, optional source links in JSON, text, and GitHub
+  annotations, and the warning gate.
 - Actual rejection of excessive complexity and overlong source files by ESLint.
 
 [CI](https://github.com/Melbourneandrew/skills-schema-lint/actions/workflows/ci.yml)
@@ -260,8 +269,8 @@ passes, and assert an invalid fixture fails with the expected outputs. A
 [release smoke workflow](.github/workflows/release-smoke.yml) imports the published
 `@v1` action on all three platforms.
 
-The original repository-local corpus was also checked read-only: 61 skills,
-zero schema errors, and one body-length advisory. No private skill contents are
+The original repository-local corpus was also checked read-only: 72 skills,
+zero schema errors, and one skill-length advisory as of 2026-10-17. No private skill contents are
 included here. Tests verify documented schema behavior; they do not launch the
 six agents or claim exhaustive compatibility with every agent version.
 
@@ -304,6 +313,8 @@ Source layout:
 ```text
 src/
   schemas/       Small declarative schemas and reusable type checks
+  lint/rules/    One file per per-skill advisory, with optional source URL
+  lint/index.ts  Built-in advisory registry and diagnostic conversion
   discovery.ts   Scoped filesystem traversal and alias handling
   files.ts       Bounded reads and path containment
   yaml.ts        Parsing and source locations
@@ -320,6 +331,11 @@ cyclomatic complexity of **10**, maximum nesting depth **4**, and **500 lines pe
 source/test/script file**, including comments and blank lines. Generated bundles
 are exempt. Strict TypeScript includes unchecked indexed access and exact
 optional properties. CI verifies that rebuilding produces the committed bundles.
+
+To add a per-skill advisory, add a small `LintRule` module in `src/lint/rules/`,
+register it in `src/lint/index.ts`, and test both findings and non-findings. A rule
+may set `referenceUrl`; the CLI and action print it with its warning. The action
+does not load executable rule code from the repository it scans.
 
 See [RELEASING.md](RELEASING.md). The repository includes a license, action
 metadata, branding, and release instructions for

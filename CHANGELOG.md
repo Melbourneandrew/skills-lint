@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Added an advisory for nonempty `references/` directories not mentioned by the skill.
+- Split per-skill lint advisories into individual, registered rule modules with
+  optional reference URLs printed in text and GitHub annotations.
+- Documented why the portable action does not estimate model-specific tokens.
+
 ## 1.0.1
 
 - Cite the Agent Skills progressive disclosure guidance for the skill length

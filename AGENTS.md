@@ -12,6 +12,9 @@
   nested expressions, lint suppressions, or arbitrary wrapper functions.
 - Preserve readable names and control flow. Avoid generic frameworks that make
   a small validation rule harder to follow.
+- Put each new per-skill advisory in its own `src/lint/rules/` module and register
+  it in `src/lint/index.ts`. Attach a primary `referenceUrl` when authoritative
+  guidance exists; otherwise document the heuristic and test non-findings.
 
 ## Strict correctness
 

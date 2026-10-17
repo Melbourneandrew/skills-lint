@@ -5,6 +5,7 @@ import { parseMapping, parseSkill } from "./yaml.js";
 import { validateSchema, validateSidecar } from "./schema.js";
 import { Rule, Severity, type Diagnostic } from "./types.js";
 import type { SkillFile } from "./discovery.js";
+import { lintSkill } from "./lint/index.js";
 
 type ParsedSkill = NonNullable<ReturnType<typeof parseSkill>>;
 export class Corpus {
@@ -46,7 +47,16 @@ export class Corpus {
     if (!parsed) return;
     const name = validateSchema(parsed, file, skill.profile, this.diagnostics);
     if (name) this.name(name, skill, file, parsed);
-    this.body(parsed, file, text);
+    lintSkill(
+      {
+        file,
+        directory: path.dirname(skill.file),
+        text,
+        body: parsed.body,
+        bodyLine: parsed.bodyLine,
+      },
+      this.diagnostics,
+    );
     this.sidecar(path.join(path.dirname(skill.file), "agents", "openai.yaml"));
   }
   private name(
@@ -65,28 +75,6 @@ export class Corpus {
         message: `Skill name also exists in ${previous.file}; harness precedence differs.`,
       });
     } else this.names.set(name, { realFile: skill.realFile, file });
-  }
-  private body(parsed: ParsedSkill, file: string, text: string) {
-    if (!parsed.body.trim())
-      this.diagnostics.push({
-        file,
-        line: parsed.bodyLine,
-        column: 1,
-        rule: Rule.Body,
-        severity: Severity.Warning,
-        message: "Skill has no Markdown instructions.",
-      });
-    const lineCount = text.split("\n").length - Number(text.endsWith("\n"));
-    if (lineCount >= 500)
-      this.diagnostics.push({
-        file,
-        line: 1,
-        column: 1,
-        rule: Rule.Body,
-        severity: Severity.Warning,
-        message:
-          "SKILL.md has at least 500 lines; the Agent Skills specification recommends keeping it under 500 and moving detail to references.",
-      });
   }
   private sidecar(sidecar: string) {
     const file = path.relative(this.workspace, sidecar);
