@@ -14,7 +14,8 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "rootDir": "src"
+    "rootDir": "src",
+    "newLine": "lf"
   },
   "include": ["src/**/*.ts"]
 }
