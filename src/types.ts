@@ -19,6 +19,8 @@ export const Rule = {
   Name: "name",
   UnknownField: "unknown-field",
   Body: "body",
+  SkillLength: "skill-length",
+  UnmentionedReferences: "unmentioned-references",
   Duplicate: "duplicate-name",
   Sidecar: "sidecar",
   Limit: "limit",
@@ -31,6 +33,7 @@ export interface Diagnostic {
   rule: Rule;
   severity: Severity;
   message: string;
+  referenceUrl?: string;
 }
 export interface Options {
   workspace?: string;
