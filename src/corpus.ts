@@ -76,7 +76,8 @@ export class Corpus {
         severity: Severity.Warning,
         message: "Skill has no Markdown instructions.",
       });
-    if (text.split("\n").length > 500)
+    const lineCount = text.split("\n").length - Number(text.endsWith("\n"));
+    if (lineCount >= 500)
       this.diagnostics.push({
         file,
         line: 1,
@@ -84,7 +85,7 @@ export class Corpus {
         rule: Rule.Body,
         severity: Severity.Warning,
         message:
-          "SKILL.md exceeds the recommended 500 lines; consider extracting references.",
+          "SKILL.md has at least 500 lines; the Agent Skills specification recommends keeping it under 500 and moving detail to references.",
       });
   }
   private sidecar(sidecar: string) {

@@ -140,16 +140,19 @@ test("name length limit", (t) => {
   const result = validate({ workspace: root });
   assert.equal(result.errorCount, 1);
 });
-test("empty body and large body are advisories", (t) => {
+test("empty body and 500-line boundary are advisories", (t) => {
   assert.equal(check(t, skill("", "example", "")).warningCount, 1);
   assert.equal(
     check(t, skill("", "example", ""), { failOnWarnings: true }).ok,
     false,
   );
-  assert.equal(
-    check(t, skill("", "example", "line\n".repeat(501))).warningCount,
-    1,
-  );
+  const lines = (count) =>
+    skill("", "example", "line\n".repeat(count).trimEnd());
+  assert.equal(check(t, lines(495)).warningCount, 0); // 499 physical lines
+  assert.equal(check(t, lines(495).trimEnd()).warningCount, 0);
+  assert.equal(check(t, lines(496)).warningCount, 1); // 500 physical lines
+  assert.equal(check(t, lines(496).trimEnd()).warningCount, 1);
+  assert.equal(check(t, lines(497)).warningCount, 1);
 });
 
 test("optional license and tools permit empty strings, not non-string scalars", (t) => {
