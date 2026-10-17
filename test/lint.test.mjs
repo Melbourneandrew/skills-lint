@@ -97,3 +97,15 @@ test("CLI and GitHub annotations print optional reference links", (t) => {
     /::warning .*Reference: https:\/\/agentskills\.io/,
   );
 });
+
+test("duplicate-name rule tracks only the current validation run", (t) => {
+  const root = workspace(t);
+  write(root, ".agents/skills/example/SKILL.md", skill());
+  write(root, ".claude/skills/example/SKILL.md", skill());
+  const duplicate = validate({ workspace: root });
+  assert.equal(duplicate.errorCount, 0);
+  assert.equal(duplicate.warningCount, 1);
+  assert.equal(duplicate.diagnostics[0].rule, "duplicate-name");
+  fs.rmSync(path.join(root, ".claude"), { recursive: true });
+  assert.equal(validate({ workspace: root }).warningCount, 0);
+});

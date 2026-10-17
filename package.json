@@ -1,21 +1,21 @@
 {
-  "name": "@melbourneandrew/skills-schema-lint",
-  "version": "1.1.0",
-  "description": "Fast Agent Skills schema validation for GitHub Actions and the command line",
+  "name": "@melbourneandrew/skills-lint",
+  "version": "1.2.0",
+  "description": "Fast schema and content linting for agent skills",
   "type": "module",
-  "private": true,
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build.mjs && node scripts/build-types.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run build && npm test",
     "bench": "node scripts/benchmark.mjs",
     "lint": "eslint . --max-warnings 0",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:package": "node scripts/test-package.mjs"
   },
   "license": "MIT",
   "devDependencies": {
@@ -27,5 +27,36 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.70.1",
     "yaml": "2.9.1"
+  },
+  "bin": {
+    "skills-lint": "dist/cli.cjs"
+  },
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/cli.cjs",
+    "dist/index.cjs",
+    "dist/index.d.cts",
+    "dist/types.d.cts",
+    "dist/THIRD-PARTY-NOTICES.txt",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Melbourneandrew/skills-lint.git"
+  },
+  "homepage": "https://github.com/Melbourneandrew/skills-lint#readme",
+  "bugs": {
+    "url": "https://github.com/Melbourneandrew/skills-lint/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

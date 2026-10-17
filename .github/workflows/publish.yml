@@ -1,0 +1,36 @@
+name: Publish npm package
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'Melbourneandrew/skills-lint'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Require an immutable version tag on main
+        run: |
+          node scripts/verify-release.mjs
+          git merge-base --is-ancestor HEAD origin/main
+      - run: npm ci
+      - run: npm run check
+      - run: npm run test:package
+      - run: git diff --exit-code -- dist
+      - run: npm publish --provenance --access public

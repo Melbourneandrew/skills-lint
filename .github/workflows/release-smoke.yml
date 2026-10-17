@@ -14,13 +14,13 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Import published action
         id: valid
-        uses: Melbourneandrew/skills-schema-lint@v1
+        uses: Melbourneandrew/skills-lint@v1
         with:
           paths: test/fixtures/valid
       - name: Verify published failure path
         id: invalid
         continue-on-error: true
-        uses: Melbourneandrew/skills-schema-lint@v1
+        uses: Melbourneandrew/skills-lint@v1
         with:
           paths: test/fixtures/invalid
       - name: Verify consumer outcomes

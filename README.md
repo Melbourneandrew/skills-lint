@@ -1,8 +1,8 @@
-# Skills Schema Lint
+# Skills Lint
 
-[![CI](https://github.com/Melbourneandrew/skills-schema-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Melbourneandrew/skills-schema-lint/actions/workflows/ci.yml)
+[![CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
 
-A GitHub Action for checking agent skill files before they merge. It catches
+A GitHub Action and CLI for checking agent skill files before they merge. It catches
 malformed YAML, missing required metadata, invalid field types, and skill names
 that do not match their directories, with findings attached to files in your PR.
 
@@ -56,7 +56,7 @@ validation needs no package installation or agent setup.
 
 ## Performance
 
-The action loads one **130,877-byte bundle (128 KiB)**, including its YAML parser.
+The action loads one **130,953-byte bundle (128 KiB)**, including its YAML parser.
 It requires no package installation at runtime. Source modules compile into
 `dist/action.cjs`; TypeScript types are erased, and the separate CLI and library
 bundles are not loaded by the action. Discovery is scoped to skill roots, with
@@ -68,9 +68,9 @@ Measured on 2026-10-17 with an Apple M3 Max, macOS ARM64, and Node 26.5.0:
 
 | Generated skills | Warm validation median | Fresh CLI process median |
 | ---------------: | ---------------------: | -----------------------: |
-|               10 |                9.44 ms |                 85.51 ms |
-|              100 |               50.54 ms |                129.56 ms |
-|            1,000 |              516.23 ms |                655.69 ms |
+|               10 |                5.61 ms |                 85.19 ms |
+|              100 |               46.29 ms |                127.15 ms |
+|            1,000 |              482.72 ms |                574.46 ms |
 
 The [benchmark](scripts/benchmark.mjs) generates small valid skills containing
 frontmatter and a one-line instruction body. Warm validation measures the library
@@ -109,7 +109,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: Melbourneandrew/skills-schema-lint@v1
+      - uses: Melbourneandrew/skills-lint@v1
 ```
 
 No token or additional permissions are needed. Pin the action to the full commit
@@ -118,7 +118,7 @@ SHA from a release for immutable builds. `v1` tracks compatible releases.
 For shared portable skills, select the standard explicitly:
 
 ```yaml
-- uses: Melbourneandrew/skills-schema-lint@v1
+- uses: Melbourneandrew/skills-lint@v1
   with:
     paths: |
       .agents/skills
@@ -131,7 +131,7 @@ OpenClaw's workspace `skills/` directory is ambiguous with generic skill
 collections, so explicitly choose its profile:
 
 ```yaml
-- uses: Melbourneandrew/skills-schema-lint@v1
+- uses: Melbourneandrew/skills-lint@v1
   with:
     paths: skills
     profile: openclaw
@@ -241,24 +241,28 @@ The CLI JSON report includes all diagnostics and structured `referenceUrl` field
 where a rule has a source. Text and GitHub annotations print the same link.
 Annotation messages and properties are escaped so input text cannot create extra
 workflow commands. This tool is a
-schema linter, not a security scanner or proof that a skill's instructions are safe.
+linter for structure and content guidance. It does not assess whether instructions
+are safe to execute.
 
 ## Local CLI and library
 
-Clone this repository; the committed bundles run directly with Node.js 24+:
+Install with Node.js 24 or newer:
 
 ```sh
-node dist/cli.cjs --help
-node dist/cli.cjs .agents/skills --profile spec
-node dist/cli.cjs skills --profile openclaw --format json
-node dist/cli.cjs --workspace /path/to/repository --fail-on-warnings
+npm install --save-dev @melbourneandrew/skills-lint
+npx skills-lint .agents/skills --profile spec
+npx skills-lint skills --profile openclaw --format json
+npx skills-lint --workspace /path/to/repository --fail-on-warnings
 ```
+
+The npm package has no runtime dependencies or installation scripts; its YAML
+parser is bundled. You can also clone the repository and run `node dist/cli.cjs`.
 
 CLI formats: `text`, `json`, `github`. Exit codes: `0` pass, `1` validation failure,
 `2` invalid CLI invocation. Paths containing spaces are ordinary quoted arguments.
 
 ```js
-const { validate } = require("./dist/index.cjs");
+const { validate } = require("@melbourneandrew/skills-lint");
 const result = validate({
   workspace: process.cwd(),
   paths: [".agents/skills"],
@@ -267,8 +271,39 @@ const result = validate({
 console.log(result.ok, result.diagnostics);
 ```
 
-This repository publishes a GitHub Action and downloadable source bundles. It is
-not currently an npm registry package.
+The library supports both CommonJS and ESM imports and includes TypeScript types.
+
+### Pre-commit hooks
+
+After installing the package, add a script to your project's `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint:skills": "skills-lint --fail-on-warnings"
+  }
+}
+```
+
+Run `npm run lint:skills` from your existing Git or Husky pre-commit hook.
+For the Python [pre-commit framework](https://pre-commit.com/), use a local hook:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: skills-lint
+        name: Lint agent skills
+        entry: npm run lint:skills
+        language: system
+        pass_filenames: false
+        always_run: true
+```
+
+Install project dependencies before running the hook. It scans the whole skill
+collection, so duplicate names and supporting-directory changes are checked too.
+It reads the working tree; partially staged edits may differ from the commit.
+CI validates the committed checkout.
 
 ## Verification
 
@@ -286,8 +321,11 @@ bundle build, and Node's test runner. Tests cover:
   annotations, and the warning gate.
 - Actual rejection of excessive complexity and overlong source files by ESLint.
 
-[CI](https://github.com/Melbourneandrew/skills-schema-lint/actions/workflows/ci.yml)
-runs on Linux, macOS, and Windows with Node 24. Separate action jobs invoke the
+[CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
+runs on every PR and push to main on Linux, macOS, and Windows with Node 24.
+Main requires a PR and all six quality/action checks to pass, including for admins.
+Each quality job also packs and installs the npm tarball in an isolated directory,
+tests the CLI and library imports, and compiles a typed consumer. Separate action jobs invoke the
 committed bundle **without installing dependencies**, assert a valid fixture
 passes, and assert an invalid fixture fails with the expected outputs. A
 [release smoke workflow](.github/workflows/release-smoke.yml) imports the published
@@ -337,13 +375,13 @@ Source layout:
 ```text
 src/
   schemas/       Small declarative schemas and reusable type checks
-  lint/rules/    One file per per-skill advisory, with optional source URL
-  lint/index.ts  Built-in advisory registry and diagnostic conversion
+  rules/         One file per content/corpus advisory, with optional source URL
+  rules/index.ts Built-in advisory registry and diagnostic conversion
   discovery.ts   Scoped filesystem traversal and alias handling
   files.ts       Bounded reads and path containment
   yaml.ts        Parsing and source locations
   schema.ts      Profile selection and cross-field validation
-  corpus.ts      Per-skill checks and duplicate-name advisories
+  corpus.ts      File caching, sidecars, and rule orchestration
   validate.ts    Public validation API and result aggregation
   action.ts      Thin GitHub Actions adapter
   cli.ts         Thin command-line adapter
@@ -356,10 +394,13 @@ source/test/script file**, including comments and blank lines. Generated bundles
 are exempt. Strict TypeScript includes unchecked indexed access and exact
 optional properties. CI verifies that rebuilding produces the committed bundles.
 
-To add a per-skill advisory, add a small `LintRule` module in `src/lint/rules/`,
-register it in `src/lint/index.ts`, and test both findings and non-findings. A rule
+To add a content advisory, add a small `LintRule` module in `src/rules/`,
+register it in `src/rules/index.ts`, and test both findings and non-findings. A rule
 may set `referenceUrl`; the CLI and action print it with its warning. The action
-does not load executable rule code from the repository it scans.
+does not load executable rule code from the repository it scans. Rules receive
+parsed skill context and per-run state; duplicate-name checking uses that state.
+Schema constraints remain in `src/schemas/`. Source splitting adds no runtime
+module loading: the build bundles all rules into the single action script.
 
 See [RELEASING.md](RELEASING.md). The repository includes a license, action
 metadata, branding, and release instructions for
