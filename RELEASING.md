@@ -36,6 +36,9 @@ The `npm` GitHub environment restricts deployments to version tags.
 Initial setup requires the npm owner to publish the first verified version and
 configure trust for GitHub owner `Melbourneandrew`, repository `skills-lint`,
 workflow `publish.yml`, and environment `npm`, with direct publishing allowed.
-Subsequent GitHub releases trigger publishing automatically. For a retry, dispatch
+Subsequent GitHub releases trigger publishing automatically. After publishing,
+the workflow downloads the exact registry version, compares its bundles to the
+verified checkout, and exercises the installed CLI and library. Run
+`npm run test:published` to repeat these checks locally. For a retry, dispatch
 `publish.yml` against the version tag. Published npm versions are immutable;
 a code change requires a new version and release.
