@@ -21,6 +21,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Install and exercise packed npm package
+        run: npm run test:package
       - name: Verify committed bundles are reproducible
         run: git diff --exit-code -- dist
       - name: Benchmark

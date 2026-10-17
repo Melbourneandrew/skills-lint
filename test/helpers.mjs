@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { validate } from "../dist/index.cjs";
 export function workspace(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "skills-schema-lint-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "skills-lint-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   return root;
 }

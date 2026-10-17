@@ -1,5 +1,5 @@
-import { Rule } from "../../types.js";
-import type { LintRule } from "../types.js";
+import { Rule } from "../types.js";
+import type { LintRule } from "./types.js";
 
 export const emptyBody: LintRule = {
   id: Rule.Body,

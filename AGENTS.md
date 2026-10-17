@@ -12,8 +12,8 @@
   nested expressions, lint suppressions, or arbitrary wrapper functions.
 - Preserve readable names and control flow. Avoid generic frameworks that make
   a small validation rule harder to follow.
-- Put each new per-skill advisory in its own `src/lint/rules/` module and register
-  it in `src/lint/index.ts`. Attach a primary `referenceUrl` when authoritative
+- Put each new per-skill advisory in its own `src/rules/` module and register
+  it in `src/rules/index.ts`. Attach a primary `referenceUrl` when authoritative
   guidance exists; otherwise document the heuristic and test non-findings.
 
 ## Strict correctness
@@ -36,7 +36,7 @@
   action does not load them. Generated bundles are exempt from source line limits.
 - Keep all build-time dependencies exact and locked. The bundled YAML parser is
   third-party code; preserve its notice and never advertise zero third-party code.
-- Run `npm ci`, `npm run check`, `npm run bench`, and `git diff --exit-code -- dist`
+- Run `npm ci`, `npm run check`, `npm run bench`, `npm run test:package`, and `git diff --exit-code -- dist`
   after committing generated files. CI verifies Linux, macOS, Windows, action
   success/failure paths, and reproducible bundles.
 - Do not weaken tests or lint thresholds to get a green build. Fix the design.

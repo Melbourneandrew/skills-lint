@@ -1,4 +1,4 @@
-name: Skills Schema Lint
+name: Skills Lint
 description: Fast Agent Skills schema checks for Claude Code, Codex, Gemini, OpenCode, OpenClaw, and Cursor
 author: Andrew Melbourne
 branding:

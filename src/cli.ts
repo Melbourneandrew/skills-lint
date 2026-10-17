@@ -17,7 +17,7 @@ try {
     },
   });
   if (values.help) {
-    console.log(`Usage: node dist/cli.cjs [paths...] [options]
+    console.log(`Usage: skills-lint [paths...] [options]
   --profile auto|spec|claude|codex|gemini|opencode|openclaw|cursor
   --workspace PATH       Containment boundary (default: current directory)
   --format text|json|github
@@ -48,7 +48,7 @@ Without paths, scan standard skill roots at the workspace top level.`);
   }
 } catch (error) {
   console.error(
-    `skills-schema-lint: ${JSON.stringify(error instanceof Error ? error.message : String(error))}`,
+    `skills-lint: ${JSON.stringify(error instanceof Error ? error.message : String(error))}`,
   );
   process.exitCode = 2;
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Renamed the project to Skills Lint and the GitHub repository to `skills-lint`.
+- Added the public npm CLI/library package, type declarations, pre-commit examples,
+  packed-package CI checks, and a trusted publishing workflow.
+- Moved content rules into `src/rules/`, including duplicate-name checking.
+- Required PRs and passing Linux, macOS, and Windows CI checks before merging.
+
 ## 1.1.0
 
 - Added an advisory for nonempty `references/` directories not mentioned by the skill.

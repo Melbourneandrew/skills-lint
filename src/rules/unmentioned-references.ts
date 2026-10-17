@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { Rule } from "../../types.js";
-import type { LintRule } from "../types.js";
+import { Rule } from "../types.js";
+import type { LintRule } from "./types.js";
 
 export const unmentionedReferences: LintRule = {
   id: Rule.UnmentionedReferences,

@@ -3,9 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { validate } from "../dist/index.cjs";
-const root = fs.mkdtempSync(
-  path.join(os.tmpdir(), "skills-schema-lint-bench-"),
-);
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "skills-lint-bench-"));
 const sizes = [10, 100, 1000];
 const median = (samples) =>
   [...samples].sort((a, b) => a - b)[Math.floor(samples.length / 2)];
