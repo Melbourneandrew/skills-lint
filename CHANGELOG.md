@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Verify the actual npm registry artifact after publishing: exact bundle contents,
+  CLI installation, exit codes, library imports, and TypeScript declarations.
+
 ## 1.2.0
 
 - Renamed the project to Skills Lint and the GitHub repository to `skills-lint`.

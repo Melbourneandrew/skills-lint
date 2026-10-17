@@ -5,6 +5,11 @@ import os from "node:os";
 import path from "node:path";
 
 const root = process.cwd();
+const { name, version } = JSON.parse(fs.readFileSync("package.json", "utf8"));
+const source = process.argv.includes("--registry")
+  ? [`${name}@${version}`]
+  : [];
+
 const temporary = fs.mkdtempSync(
   path.join(os.tmpdir(), "skills-lint-package-"),
 );
@@ -15,7 +20,7 @@ const npm = (args, cwd) =>
   });
 try {
   const [packed] = JSON.parse(
-    npm(["pack", "--json", "--pack-destination", temporary], root),
+    npm(["pack", ...source, "--json", "--pack-destination", temporary], root),
   );
   const allowed = new Set([
     "package.json",
@@ -48,6 +53,13 @@ try {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(installed, "package.json"), "utf8"),
   );
+  assert.equal(manifest.version, version);
+  assert.equal(manifest.name, name);
+  for (const file of ["cli.cjs", "index.cjs", "index.d.cts", "types.d.cts"])
+    assert.deepEqual(
+      fs.readFileSync(path.join(installed, "dist", file)),
+      fs.readFileSync(path.join(root, "dist", file)),
+    );
   assert.equal(manifest.bin["skills-lint"], "dist/cli.cjs");
   assert.equal(manifest.dependencies, undefined);
   assert.equal(manifest.scripts.postinstall, undefined);

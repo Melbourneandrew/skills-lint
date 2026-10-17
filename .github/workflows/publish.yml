@@ -34,3 +34,5 @@ jobs:
       - run: npm run test:package
       - run: git diff --exit-code -- dist
       - run: npm publish --provenance --access public
+      - name: Install and test the published registry artifact
+        run: npm run test:published
