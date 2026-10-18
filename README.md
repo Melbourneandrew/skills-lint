@@ -2,9 +2,8 @@
 
 [![CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
 
-A GitHub Action and CLI for checking agent skill files before they merge. It catches
-malformed YAML, missing required metadata, invalid field types, and skill names
-that do not match their directories, with findings attached to files in your PR.
+Lint agent skills with `npx @melbourneandrew/skills-lint` (Node.js 24+) or add
+`- uses: Melbourneandrew/skills-lint@v1` after checkout in GitHub Actions.
 
 The baseline is the [Agent Skills specification](https://agentskills.io/specification).
 Harness profiles add checks for fields documented by
@@ -40,6 +39,7 @@ Invalid action inputs or CLI options also fail before validation.
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Empty instructions        | No Markdown instructions after the frontmatter.                                                                                                                                                                           |
 | Skill length              | At least 500 physical lines in `SKILL.md`. The [standard recommends keeping it under 500](https://agentskills.io/specification#progressive-disclosure).                                                                   |
+| Estimated tokens          | Over 5,000 estimated tokens in `SKILL.md`, including frontmatter (four Unicode characters per token). A rough English-text heuristic, not an exact count.                                                                 |
 | Unmentioned references    | A nonempty, direct `references/` directory whose name never appears in the skill body. This is a heuristic based on [loading supporting material on demand](https://agentskills.io/specification#progressive-disclosure). |
 | Duplicate name            | The same skill name appears in distinct physical files. Harness overrides can make this intentional.                                                                                                                      |
 | Unknown harness fields    | Unrecognized top-level fields in a harness profile, or unknown top-level sections in the Codex sidecar.                                                                                                                   |
@@ -53,49 +53,6 @@ prove that a skill works inside an agent.
 
 The action ships as one bundled JavaScript file, including its YAML parser, so
 validation needs no package installation or agent setup.
-
-## Performance
-
-The action loads one **130,953-byte bundle (128 KiB)**, including its YAML parser.
-It requires no package installation at runtime. Source modules compile into
-`dist/action.cjs`; TypeScript types are erased, and the separate CLI and library
-bundles are not loaded by the action. Discovery is scoped to skill roots, with
-physical-file contents cached within each validation run.
-
-### Measured validation time
-
-Measured on 2026-10-17 with an Apple M3 Max, macOS ARM64, and Node 26.5.0:
-
-| Generated skills | Warm validation median | Fresh CLI process median |
-| ---------------: | ---------------------: | -----------------------: |
-|               10 |                5.61 ms |                 85.19 ms |
-|              100 |               46.29 ms |                127.15 ms |
-|            1,000 |              482.72 ms |                574.46 ms |
-
-The [benchmark](scripts/benchmark.mjs) generates small valid skills containing
-frontmatter and a one-line instruction body. Warm validation measures the library
-in an existing process: five runs after one discarded warmup. Fresh CLI timings
-measure five new Node processes, including startup, validation, and JSON output.
-Filesystem caches are warm in both cases.
-
-These timings exclude runner provisioning, repository checkout, and action
-download. Larger documents, sidecars, diagnostics, filesystem performance, and
-host load affect results. The table is a reproducible example measurement;
-comparative performance against other linters has not been measured. The action's
-`duration-ms` output measures validation only.
-
-### Reproduce
-
-```sh
-npm ci
-npm run build
-npm run bench
-```
-
-The command prints the hardware, Node version, bundle size, and timing medians.
-[Linux CI](.github/workflows/ci.yml) also logs benchmarks on Node 24, which is the
-action's runtime. Benchmarks are informational, with no timing threshold that
-could fail on a busy runner.
 
 ## Use in GitHub Actions
 
@@ -200,11 +157,13 @@ quotes, flow collections, anchors, BOM, and CRLF are supported. Parse errors,
 unresolved tags/aliases, non-string field keys, and parser warnings fail clearly.
 Scalar types are retained: quote numeric metadata values when strings are needed.
 
-The standard also recommends fewer than 5,000 instruction tokens. This action
-does not estimate tokens: the harnesses use different tokenizers, so an estimate
-could incorrectly imply a portable threshold check. The length and references
-warnings are recommendations, not format restrictions. A schema check does not
-grade instruction quality.
+The token-length advisory warns above 5,000 estimated tokens, using the whole
+`SKILL.md` (including frontmatter, whitespace, and code): Unicode character count
+divided by four, rounded up. This uses [OpenAI’s rough English-text estimate](https://help.openai.com/en/articles/4936856-understanding-and-counting-tokens),
+not a tokenizer. Actual counts vary by model, language, and content. The
+[standard’s instruction budget](https://agentskills.io/specification#progressive-disclosure)
+is guidance; both length warnings recommend splitting details into linked files
+in the skill directory. A schema check does not grade instruction quality.
 
 ### Harness profiles and compatibility boundaries
 
@@ -305,37 +264,6 @@ collection, so duplicate names and supporting-directory changes are checked too.
 It reads the working tree; partially staged edits may differ from the commit.
 CI validates the committed checkout.
 
-## Verification
-
-`npm run check` runs strict TypeScript, type-aware ESLint, formatting, a fresh
-bundle build, and Node's test runner. Tests cover:
-
-- Portable constraints and boundary lengths, Unicode normalization, actual YAML
-  types, duplicate keys, multiline/flow syntax, aliases, and malformed input.
-- Positive and negative cases for harness extensions and the Codex sidecar.
-- Recursive discovery, aliases, cycles, external paths, missing paths, filename
-  casing, invalid UTF-8, size limits, duplicates, and empty-result policy.
-- CLI exit codes and formats; action inputs, outputs, summaries, failure paths,
-  annotation escaping, and running the bundle without `node_modules`.
-- Lint findings and non-findings, optional source links in JSON, text, and GitHub
-  annotations, and the warning gate.
-- Actual rejection of excessive complexity and overlong source files by ESLint.
-
-[CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
-runs on every PR and push to main on Linux, macOS, and Windows with Node 24.
-Main requires a PR and all six quality/action checks to pass, including for admins.
-Each quality job also packs and installs the npm tarball in an isolated directory,
-tests the CLI and library imports, and compiles a typed consumer. Separate action jobs invoke the
-committed bundle **without installing dependencies**, assert a valid fixture
-passes, and assert an invalid fixture fails with the expected outputs. A
-[release smoke workflow](.github/workflows/release-smoke.yml) imports the published
-`@v1` action on all three platforms.
-
-The original repository-local corpus was also checked read-only: 72 skills,
-zero schema errors, and one skill-length advisory as of 2026-10-17. No private skill contents are
-included here. Tests verify documented schema behavior; they do not launch the
-six agents or claim exhaustive compatibility with every agent version.
-
 ## Research, references, and precedents
 
 Reviewed **2026-10-17**. Upstream documentation changes; these references explain
@@ -362,53 +290,52 @@ the decisions and the limits of the compatibility claims.
 
 No affiliation with or certification by the harness vendors is implied.
 
-## Development and releases
-
-```sh
-npm ci
-npm run check
-npm run bench
-```
-
-Source layout:
-
-```text
-src/
-  schemas/       Small declarative schemas and reusable type checks
-  rules/         One file per content/corpus advisory, with optional source URL
-  rules/index.ts Built-in advisory registry and diagnostic conversion
-  discovery.ts   Scoped filesystem traversal and alias handling
-  files.ts       Bounded reads and path containment
-  yaml.ts        Parsing and source locations
-  schema.ts      Profile selection and cross-field validation
-  corpus.ts      File caching, sidecars, and rule orchestration
-  validate.ts    Public validation API and result aggregation
-  action.ts      Thin GitHub Actions adapter
-  cli.ts         Thin command-line adapter
-  report.ts      Text and workflow-command formatting
-```
-
-[AGENTS.md](AGENTS.md) requires diligent code splitting. ESLint enforces a maximum
-cyclomatic complexity of **10**, maximum nesting depth **4**, and **500 lines per
-source/test/script file**, including comments and blank lines. Generated bundles
-are exempt. Strict TypeScript includes unchecked indexed access and exact
-optional properties. CI verifies that rebuilding produces the committed bundles.
-
-To add a content advisory, add a small `LintRule` module in `src/rules/`,
-register it in `src/rules/index.ts`, and test both findings and non-findings. A rule
-may set `referenceUrl`; the CLI and action print it with its warning. The action
-does not load executable rule code from the repository it scans. Rules receive
-parsed skill context and per-run state; duplicate-name checking uses that state.
-Schema constraints remain in `src/schemas/`. Source splitting adds no runtime
-module loading: the build bundles all rules into the single action script.
-
-See [RELEASING.md](RELEASING.md). The repository includes a license, action
-metadata, branding, and release instructions for
-[Marketplace publication](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace).
-A tagged public action can be imported immediately; a Marketplace listing is a
-separate GitHub publication step requiring the owner's acceptance of its terms.
-
 ## License
 
 MIT. The bundled YAML parser retains its own ISC notice in
 [dist/THIRD-PARTY-NOTICES.txt](dist/THIRD-PARTY-NOTICES.txt).
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development, verification, and releases.
+
+## Performance
+
+The action loads one **131,588-byte bundle (129 KiB)**, including its YAML parser.
+It requires no package installation at runtime. Source modules compile into
+`dist/action.cjs`; TypeScript types are erased, and the separate CLI and library
+bundles are not loaded by the action. Discovery is scoped to skill roots, with
+physical-file contents cached within each validation run.
+
+### Measured validation time
+
+Measured on 2026-10-17 with an Apple M3 Max, macOS ARM64, and Node 26.5.0:
+
+| Generated skills | Warm validation median | Fresh CLI process median |
+| ---------------: | ---------------------: | -----------------------: |
+|               10 |                6.89 ms |                100.72 ms |
+|              100 |               58.80 ms |                158.40 ms |
+|            1,000 |              623.23 ms |                757.29 ms |
+
+The [benchmark](scripts/benchmark.mjs) generates small valid skills containing
+frontmatter and a one-line instruction body. Warm validation measures the library
+in an existing process: five runs after one discarded warmup. Fresh CLI timings
+measure five new Node processes, including startup, validation, and JSON output.
+Filesystem caches are warm in both cases.
+
+These timings exclude runner provisioning, repository checkout, and action
+download. Larger documents, sidecars, diagnostics, filesystem performance, and
+host load affect results. The table is a reproducible example measurement;
+comparative performance against other linters has not been measured. The action's
+`duration-ms` output measures validation only.
+
+### Reproduce
+
+```sh
+npm ci
+npm run build
+npm run bench
+```
+
+The command prints the hardware, Node version, bundle size, and timing medians.
+[Linux CI](.github/workflows/ci.yml) also logs benchmarks on Node 24, which is the
+action's runtime. Benchmarks are informational, with no timing threshold that
+could fail on a busy runner.

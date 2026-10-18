@@ -20,6 +20,7 @@ export const Rule = {
   UnknownField: "unknown-field",
   Body: "body",
   SkillLength: "skill-length",
+  TokenLength: "token-length",
   UnmentionedReferences: "unmentioned-references",
   Duplicate: "duplicate-name",
   Sidecar: "sidecar",

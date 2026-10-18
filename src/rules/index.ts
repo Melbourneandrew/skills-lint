@@ -2,6 +2,7 @@ import { duplicateName } from "./duplicate-name.js";
 import { Severity, type Diagnostic } from "../types.js";
 import { emptyBody } from "./empty-body.js";
 import { skillLength } from "./skill-length.js";
+import { tokenLength } from "./token-length.js";
 import { unmentionedReferences } from "./unmentioned-references.js";
 import type { LintContext, LintRule, LintState } from "./types.js";
 
@@ -10,6 +11,7 @@ const rules: readonly LintRule[] = [
   duplicateName,
   emptyBody,
   skillLength,
+  tokenLength,
   unmentionedReferences,
 ];
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+- Warn above 5,000 estimated tokens using a cited four-characters-per-token
+  English-text heuristic, with no tokenizer dependency.
+- Both length warnings recommend linked supporting files and cite the standard
+  skill directory layout.
+- Put quick usage first, move contributor details to CONTRIBUTING.md, and place
+  performance measurements at the end of the README.
+
 ## 1.2.1
 
 - Verify the actual npm registry artifact after publishing: exact bundle contents,

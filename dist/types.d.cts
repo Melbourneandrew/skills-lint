@@ -23,6 +23,7 @@ export declare const Rule: {
     readonly UnknownField: "unknown-field";
     readonly Body: "body";
     readonly SkillLength: "skill-length";
+    readonly TokenLength: "token-length";
     readonly UnmentionedReferences: "unmentioned-references";
     readonly Duplicate: "duplicate-name";
     readonly Sidecar: "sidecar";
