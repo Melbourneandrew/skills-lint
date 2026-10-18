@@ -5,7 +5,7 @@
 ## Use in GitHub Actions
 
 ```yaml
-name: Skills
+name: Lint agent skills
 on: [push, pull_request]
 permissions:
   contents: read

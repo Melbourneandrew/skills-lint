@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
 
-Skills Lint checks agent skills for invalid metadata and content that could be
-better organized. Run it locally or in pull requests to catch problems before
+Skills Lint validates agent skill metadata and checks content against authoring
+best practices. Run it locally or in pull requests to catch problems before
 other people use your skills.
 
 It checks the [Agent Skills specification](https://agentskills.io/specification)
@@ -22,10 +22,10 @@ npm install --save-dev @melbourneandrew/skills-lint
 npx skills-lint
 ```
 
-Or save this as `.github/workflows/skills.yml`:
+Or save this as `.github/workflows/lint-skills.yml`:
 
 ```yaml
-name: Skills
+name: Lint agent skills
 on: [push, pull_request]
 permissions:
   contents: read
@@ -64,7 +64,7 @@ Invalid action inputs or CLI options also fail before validation.
 | Check                     | What is reported                                                                                                                                                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Empty instructions        | No Markdown instructions after the frontmatter.                                                                                                                                                                           |
-| Skill length              | At least 500 physical lines in `SKILL.md`. The [standard recommends keeping it under 500](https://agentskills.io/specification#progressive-disclosure).                                                                   |
+| Skill length              | 500 or more lines in `SKILL.md`. The [standard recommends keeping it under 500](https://agentskills.io/specification#progressive-disclosure).                                                                             |
 | Estimated tokens          | Over 5,000 estimated tokens in `SKILL.md`, including frontmatter (four Unicode characters per token). A rough English-text heuristic, not an exact count.                                                                 |
 | Unmentioned references    | A nonempty, direct `references/` directory whose name never appears in the skill body. This is a heuristic based on [loading supporting material on demand](https://agentskills.io/specification#progressive-disclosure). |
 | Duplicate name            | The same skill name appears in distinct physical files. Harness overrides can make this intentional.                                                                                                                      |
