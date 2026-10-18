@@ -18,8 +18,8 @@ for the reference implementations and related validators reviewed.
 
 ## Errors and warnings
 
-Errors fail the check. Warnings are advisory unless `fail-on-warnings: true`
-(or the CLI's `--fail-on-warnings`) is enabled.
+Errors fail the check for problems that can prevent an agent from loading or
+using a skill. Warnings suggest improvements to skill content and organization.
 
 ### Errors
 
