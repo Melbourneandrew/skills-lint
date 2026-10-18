@@ -16,7 +16,14 @@ test("length advisory cites its source and empty body has no source", (t) => {
   assert.equal(result.errorCount, 0);
   assert.equal(result.warningCount, 1);
   assert.equal(result.diagnostics[0].rule, "skill-length");
-  assert.equal(result.diagnostics[0].referenceUrl, standard);
+  assert.equal(
+    result.diagnostics[0].referenceUrl,
+    "https://agentskills.io/specification#directory-structure",
+  );
+  assert.match(
+    result.diagnostics[0].message,
+    /split detailed content into separate files/,
+  );
   write(root, skillPath, skill("", "example", ""));
   const empty = validate({ workspace: root });
   assert.equal(empty.diagnostics[0].rule, "body");
