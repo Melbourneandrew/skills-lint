@@ -1,6 +1,7 @@
 # Skills Lint
 
-[![CI](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/Melbourneandrew/skills-lint/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/%40melbourneandrew%2Fskills-lint)](https://www.npmjs.com/package/@melbourneandrew/skills-lint)
+[![GitHub Action release](https://img.shields.io/github/v/release/Melbourneandrew/skills-lint?label=GitHub%20Action)](https://github.com/Melbourneandrew/skills-lint/releases/latest)
 
 Skills Lint validates agent skill metadata and checks content against authoring
 best practices. Run it locally or in pull requests to catch problems before
