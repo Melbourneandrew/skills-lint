@@ -6,6 +6,7 @@ import { validate } from "../dist/index.cjs";
 import { workspace, write, skill, check } from "./helpers.mjs";
 for (const [directory, field] of [
   [".claude", "context: fork"],
+  [".pi", "disable-model-invocation: true"],
   [".cursor", "disable-model-invocation: true"],
   [".openclaw", "homepage: https://example.com"],
 ])
@@ -25,10 +26,11 @@ test("all standard roots discovered", (t) => {
     ".opencode",
     ".openclaw",
     ".cursor",
+    ".pi",
   ])
     write(root, `${dir}/skills/example/SKILL.md`, skill());
   write(root, "skills/example/SKILL.md", skill());
-  assert.equal(validate({ workspace: root }).skillCount, 8);
+  assert.equal(validate({ workspace: root }).skillCount, 9);
 });
 test("default scan is bounded to top-level roots; explicit monorepo paths work", (t) => {
   const root = workspace(t);

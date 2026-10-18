@@ -8,6 +8,7 @@ export const defaultPaths = [
   ".opencode/skills",
   ".openclaw/skills",
   ".cursor/skills",
+  ".pi/skills",
   "skills",
 ];
 const profiles = new Map<string, ResolvedProfile>([
@@ -17,6 +18,7 @@ const profiles = new Map<string, ResolvedProfile>([
   [".opencode", Profile.OpenCode],
   [".openclaw", Profile.OpenClaw],
   [".cursor", Profile.Cursor],
+  [".pi", Profile.Pi],
 ]);
 export function isProfile(value: unknown): value is Profile {
   return Object.values(Profile).some((profile) => profile === value);

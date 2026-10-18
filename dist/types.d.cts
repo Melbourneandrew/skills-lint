@@ -7,6 +7,7 @@ export declare const Profile: {
     readonly OpenCode: "opencode";
     readonly OpenClaw: "openclaw";
     readonly Cursor: "cursor";
+    readonly Pi: "pi";
 };
 export type Profile = (typeof Profile)[keyof typeof Profile];
 export type ResolvedProfile = Exclude<Profile, "auto">;

@@ -9,7 +9,7 @@ inputs:
     description: Newline-separated literal skill roots or SKILL.md paths, relative to the checked-out workspace. Empty discovers standard top-level roots.
     required: false
   profile:
-    description: "Schema profile: auto, spec, claude, codex, gemini, opencode, openclaw, or cursor"
+    description: "Schema profile: auto, spec, claude, codex, gemini, opencode, openclaw, cursor, or pi"
     default: auto
   allow-empty:
     description: Allow a successful run when no skills are found

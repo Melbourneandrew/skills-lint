@@ -7,6 +7,7 @@ export const Profile = {
   OpenCode: "opencode",
   OpenClaw: "openclaw",
   Cursor: "cursor",
+  Pi: "pi",
 } as const;
 export type Profile = (typeof Profile)[keyof typeof Profile];
 export type ResolvedProfile = Exclude<Profile, "auto">;

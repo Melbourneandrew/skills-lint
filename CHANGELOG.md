@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- Add Pi profile, `.pi/skills` discovery, ASCII names, and invocation flag checks.
+- Shorten the README and move usage and research details into linked documents.
+- Measure empty Node startup and library-loading overhead in the benchmark.
+
 ## 1.3.0
 
 - Warn above 5,000 estimated tokens using a cited four-characters-per-token

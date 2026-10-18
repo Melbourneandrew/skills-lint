@@ -9,6 +9,7 @@ import {
 import type { ParsedMapping } from "./yaml.js";
 import { fields, type Shape } from "./schemas/checks.js";
 import { standard } from "./schemas/standard.js";
+import { pi } from "./schemas/pi.js";
 import { cursor } from "./schemas/cursor.js";
 import { claude } from "./schemas/claude.js";
 import { openclaw, validateDispatch } from "./schemas/openclaw.js";
@@ -21,6 +22,7 @@ const extensions: Record<ResolvedProfile, Shape> = {
   opencode: {},
   openclaw,
   cursor,
+  pi,
 };
 const schemas = Object.fromEntries(
   Object.entries(extensions).map(([profile, extra]) => [
@@ -50,8 +52,11 @@ function reporter(
     });
   };
 }
+function usesAsciiNames(profile: ResolvedProfile): boolean {
+  return profile === Profile.OpenCode || profile === Profile.Pi;
+}
 function canonicalName(name: string, profile: ResolvedProfile): string {
-  return profile === Profile.OpenCode ? name : name.normalize("NFKC");
+  return usesAsciiNames(profile) ? name : name.normalize("NFKC");
 }
 function validateName(
   name: string,
@@ -62,10 +67,9 @@ function validateName(
   const normalized = canonicalName(name, profile);
   if (normalized !== name && [...normalized].length > 64)
     report("name", "Normalized name must be at most 64 characters.");
-  const pattern =
-    profile === Profile.OpenCode
-      ? /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-      : /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u;
+  const pattern = usesAsciiNames(profile)
+    ? /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+    : /^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$/u;
   if (
     normalized !== normalized.toLowerCase() ||
     !pattern.test(normalized) ||
@@ -73,7 +77,7 @@ function validateName(
   )
     report(
       "name",
-      "name must use lowercase letters, numbers, and single interior hyphens (ASCII for OpenCode).",
+      "name must use lowercase letters, numbers, and single interior hyphens (ASCII for OpenCode and Pi).",
     );
   if (normalized !== canonicalName(path.basename(path.dirname(file)), profile))
     report("name", "name must match the parent directory name.");
