@@ -10,6 +10,7 @@ for (const profile of [
   "opencode",
   "openclaw",
   "cursor",
+  "pi",
 ]) {
   test(`portable frontmatter works with ${profile}`, (t) => {
     const result = check(

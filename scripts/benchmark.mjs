@@ -7,7 +7,27 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), "skills-lint-bench-"));
 const sizes = [10, 100, 1000];
 const median = (samples) =>
   [...samples].sort((a, b) => a - b)[Math.floor(samples.length / 2)];
+function processMedian(args) {
+  const samples = [];
+  for (let iteration = 0; iteration < 5; iteration++) {
+    const start = performance.now();
+    const child = spawnSync(process.execPath, args, {
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    if (child.status !== 0) throw new Error(child.stderr);
+    samples.push(Math.round((performance.now() - start) * 100) / 100);
+  }
+  return median(samples);
+}
 try {
+  const startup = {
+    emptyNodeProcessMedianMs: processMedian(["-e", ""]),
+    loadLibraryProcessMedianMs: processMedian([
+      "-e",
+      `require(${JSON.stringify(path.resolve("dist/index.cjs"))})`,
+    ]),
+  };
   const results = [];
   for (const count of sizes) {
     const collection = path.join(root, `corpus-${count}`);
@@ -59,9 +79,10 @@ try {
         platform: `${process.platform}/${process.arch}`,
         cpu: os.cpus()[0]?.model,
         actionBytes: fs.statSync("dist/action.cjs").size,
+        startup,
         results,
         method:
-          "Generated fixtures; filesystem cache warm; five measured runs after one warmup. Cold process includes Node startup. Excludes checkout, action download, runner provisioning.",
+          "Synthetic skill files; filesystem cache warm; five measured runs after one warmup. Cold process includes Node startup. Excludes checkout, action download, runner provisioning.",
       },
       null,
       2,

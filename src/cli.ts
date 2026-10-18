@@ -18,7 +18,7 @@ try {
   });
   if (values.help) {
     console.log(`Usage: skills-lint [paths...] [options]
-  --profile auto|spec|claude|codex|gemini|opencode|openclaw|cursor
+  --profile auto|spec|claude|codex|gemini|opencode|openclaw|cursor|pi
   --workspace PATH       Containment boundary (default: current directory)
   --format text|json|github
   --allow-empty          Allow zero discovered skills
